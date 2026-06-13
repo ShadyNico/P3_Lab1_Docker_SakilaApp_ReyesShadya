@@ -1,0 +1,11 @@
+bin/
+obj/
+DataProtectionKeys/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+TestResults/
+*.log
