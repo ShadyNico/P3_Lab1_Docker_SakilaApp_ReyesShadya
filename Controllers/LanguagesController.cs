@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace SakilaApp.Controllers
 {
+    [Authorize(Roles = "Administrador")]
     public class LanguagesController : Controller
     {
         private readonly SakilaContext _context;

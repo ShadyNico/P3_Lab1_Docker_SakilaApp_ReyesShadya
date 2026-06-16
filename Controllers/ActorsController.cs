@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace SakilaApp.Controllers
 {
+    [Authorize(Roles = "Administrador,Supervisor,Operador,Consulta")]
     public class ActorsController : Controller
     {
         private readonly SakilaContext _context;
@@ -66,6 +67,7 @@ namespace SakilaApp.Controllers
         }
 
         // GET: Actors/Create
+        [Authorize(Roles = "Administrador,Operador")]
         public IActionResult Create()
         {
             return View();
@@ -88,6 +90,7 @@ namespace SakilaApp.Controllers
         }
 
         // GET: Actors/Edit/5
+        [Authorize(Roles = "Administrador,Supervisor")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -139,6 +142,7 @@ namespace SakilaApp.Controllers
         }
 
         // GET: Actors/Delete/5
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)

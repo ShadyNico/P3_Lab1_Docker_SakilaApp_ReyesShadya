@@ -9,8 +9,16 @@ public static class IdentitySeeder
         var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
 
-        string[] roles = { "Administrador", "Usuario" };
+        // 1. Roles requeridos para el laboratorio
+        string[] roles = 
+        { 
+            "Administrador", 
+            "Supervisor", 
+            "Operador", 
+            "Consulta" 
+        };
 
+        // 2. Crear roles si todavía no existen
         foreach (var role in roles)
         {
             if (!await roleManager.RoleExistsAsync(role))
@@ -19,26 +27,56 @@ public static class IdentitySeeder
             }
         }
 
-        string emailAdmin = "admin@espe.edu.ec";
-        string passwordAdmin = "Admin123*";
-
-        var admin = await userManager.FindByEmailAsync(emailAdmin);
-
-        if (admin == null)
+        // 3. Usuarios de prueba con su contraseña y rol
+        var usuarios = new[]
         {
-            admin = new IdentityUser
+            new
             {
-                UserName = emailAdmin,
-                Email = emailAdmin,
-                EmailConfirmed = true
-            };
+                Email = "admin@espe.edu.ec",
+                Password = "Admin123*",
+                Role = "Administrador"
+            },
+            new
+            {
+                Email = "supervisor@espe.edu.ec",
+                Password = "Supervisor123*",
+                Role = "Supervisor"
+            },
+            new
+            {
+                Email = "operador@espe.edu.ec",
+                Password = "Operador123*",
+                Role = "Operador"
+            },
+            new
+            {
+                Email = "consulta@espe.edu.ec",
+                Password = "Consulta123*",
+                Role = "Consulta"
+            }
+        };
 
-            await userManager.CreateAsync(admin, passwordAdmin);
-        }
-
-        if (!await userManager.IsInRoleAsync(admin, "Administrador"))
+        // 4. Crear cada usuario y asignarle su rol correspondiente
+        foreach (var item in usuarios)
         {
-            await userManager.AddToRoleAsync(admin, "Administrador");
+            var user = await userManager.FindByEmailAsync(item.Email);
+
+            if (user == null)
+            {
+                user = new IdentityUser
+                {
+                    UserName = item.Email,
+                    Email = item.Email,
+                    EmailConfirmed = true
+                };
+
+                await userManager.CreateAsync(user, item.Password);
+            }
+
+            if (!await userManager.IsInRoleAsync(user, item.Role))
+            {
+                await userManager.AddToRoleAsync(user, item.Role);
+            }
         }
     }
 }

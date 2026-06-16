@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace SakilaApp.Controllers
 {
+    [Authorize(Roles = "Administrador,Supervisor,Consulta")]
     public class CategoriesController : Controller
     {
         private readonly SakilaContext _context;
@@ -45,6 +46,7 @@ namespace SakilaApp.Controllers
         }
 
         // GET: Categories/Create
+        [Authorize(Roles = "Administrador,Supervisor")]
         public IActionResult Create()
         {
             return View();
@@ -53,6 +55,7 @@ namespace SakilaApp.Controllers
         // POST: Categories/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [Authorize(Roles = "Administrador,Supervisor")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("CategoryId,Name,LastUpdate")] Category category)
@@ -67,6 +70,7 @@ namespace SakilaApp.Controllers
         }
 
         // GET: Categories/Edit/5
+        [Authorize(Roles = "Administrador,Supervisor")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -85,6 +89,7 @@ namespace SakilaApp.Controllers
         // POST: Categories/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [Authorize(Roles = "Administrador,Supervisor")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("CategoryId,Name,LastUpdate")] Category category)
@@ -118,6 +123,7 @@ namespace SakilaApp.Controllers
         }
 
         // GET: Categories/Delete/5
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -136,6 +142,7 @@ namespace SakilaApp.Controllers
         }
 
         // POST: Categories/Delete/5
+        [Authorize(Roles = "Administrador")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

@@ -479,7 +479,7 @@ namespace SakilaApp.Controllers
         }
 
         // GET: Films/Create
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Roles = "Administrador,Supervisor")]
         public IActionResult Create()
         {
             ViewData["LanguageId"] = new SelectList(_context.Languages, "LanguageId", "LanguageId");
@@ -492,6 +492,7 @@ namespace SakilaApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador,Supervisor")]
         public async Task<IActionResult> Create([Bind("FilmId,Title,Description,ReleaseYear,LanguageId,OriginalLanguageId,RentalDuration,RentalRate,Length,ReplacementCost,LastUpdate,SpecialFeatures,Fulltext")] Film film)
         {
             if (ModelState.IsValid)
@@ -506,6 +507,7 @@ namespace SakilaApp.Controllers
         }
 
         // GET: Films/Edit/5
+        [Authorize(Roles = "Administrador,Supervisor")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -528,6 +530,7 @@ namespace SakilaApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador,Supervisor")]
         public async Task<IActionResult> Edit(int id, [Bind("FilmId,Title,Description,ReleaseYear,LanguageId,OriginalLanguageId,RentalDuration,RentalRate,Length,ReplacementCost,LastUpdate,SpecialFeatures,Fulltext")] Film film)
         {
             if (id != film.FilmId)
@@ -561,6 +564,7 @@ namespace SakilaApp.Controllers
         }
 
         // GET: Films/Delete/5
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -581,8 +585,9 @@ namespace SakilaApp.Controllers
         }
 
         // POST: Films/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
+     [HttpPost, ActionName("Delete")]
+     [ValidateAntiForgeryToken]
+     [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var film = await _context.Films.FindAsync(id);
