@@ -14,6 +14,8 @@ using Microsoft.Extensions.Logging;
 
 namespace SakilaApp.Areas.Identity.Pages.Account
 {
+    // Segunda pantalla del login cuando PasswordSignInAsync devuelve RequiresTwoFactor.
+    // Identity ya valido la password; aqui solo falta validar el codigo TOTP.
     public class LoginWith2faModel : PageModel
     {
         private readonly SignInManager<IdentityUser> _signInManager;
@@ -75,7 +77,9 @@ namespace SakilaApp.Areas.Identity.Pages.Account
 
         public async Task<IActionResult> OnGetAsync(bool rememberMe, string returnUrl = null)
         {
-            // Ensure the user has gone through the username & password screen first
+            // Peticion GET: recupera de la cookie temporal de Identity el usuario que
+            // ya paso por email/password. Sin esa cookie no se permite saltar directo
+            // a esta pagina.
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
 
             if (user == null)
@@ -91,6 +95,8 @@ namespace SakilaApp.Areas.Identity.Pages.Account
 
         public async Task<IActionResult> OnPostAsync(bool rememberMe, string returnUrl = null)
         {
+            // Peticion POST: recibe el codigo de 6 digitos y, opcionalmente,
+            // RememberMachine para no pedir 2FA otra vez en este navegador.
             if (!ModelState.IsValid)
             {
                 return Page();
@@ -104,8 +110,14 @@ namespace SakilaApp.Areas.Identity.Pages.Account
                 throw new InvalidOperationException($"Unable to load two-factor authentication user.");
             }
 
+            // Normaliza el codigo por si el usuario lo escribio con espacios o guiones.
             var authenticatorCode = Input.TwoFactorCode.Replace(" ", string.Empty).Replace("-", string.Empty);
 
+            // Verifica el TOTP con la llave secreta guardada para este usuario.
+            // El servidor calcula el codigo esperado para la ventana de tiempo actual
+            // y lo compara con authenticatorCode. No consulta a la app autenticadora.
+            // rememberMe controla la duracion del login; RememberMachine guarda una
+            // cookie para omitir el segundo factor en este navegador en futuros logins.
             var result = await _signInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, rememberMe, Input.RememberMachine);
 
             var userId = await _userManager.GetUserIdAsync(user);

@@ -35,6 +35,8 @@ namespace SakilaApp.Areas.Identity.Pages.Account.Manage
         /// </summary>
         public IActionResult OnGet()
         {
+            // Esta pagina solo muestra codigos recien generados enviados por TempData.
+            // Si se recarga despues o no hay codigos, vuelve al panel de 2FA.
             if (RecoveryCodes == null || RecoveryCodes.Length == 0)
             {
                 return RedirectToPage("./TwoFactorAuthentication");

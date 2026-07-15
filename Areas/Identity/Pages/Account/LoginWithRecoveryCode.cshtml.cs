@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 namespace SakilaApp.Areas.Identity.Pages.Account
 {
+    // Login alternativo cuando el usuario no tiene acceso a la app autenticadora.
+    // Se usa despues de validar email/password y consume un codigo de recuperacion.
     public class LoginWithRecoveryCodeModel : PageModel
     {
         private readonly SignInManager<IdentityUser> _signInManager;
@@ -60,7 +62,8 @@ namespace SakilaApp.Areas.Identity.Pages.Account
 
         public async Task<IActionResult> OnGetAsync(string returnUrl = null)
         {
-            // Ensure the user has gone through the username & password screen first
+            // Peticion GET: exige que el usuario ya haya pasado por email/password.
+            // La cookie temporal de Identity guarda que usuario esta en el reto 2FA.
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
             {
@@ -74,6 +77,8 @@ namespace SakilaApp.Areas.Identity.Pages.Account
 
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
+            // Peticion POST: recibe un codigo de recuperacion. Si es valido,
+            // Identity lo consume para que no se pueda reutilizar.
             if (!ModelState.IsValid)
             {
                 return Page();
@@ -85,8 +90,11 @@ namespace SakilaApp.Areas.Identity.Pages.Account
                 throw new InvalidOperationException($"Unable to load two-factor authentication user.");
             }
 
+            // Los espacios se quitan para permitir copiar/pegar con formato.
             var recoveryCode = Input.RecoveryCode.Replace(" ", string.Empty);
 
+            // Verifica el codigo contra los codigos de recuperacion guardados.
+            // Este flujo no usa el calculo TOTP ni la llave del autenticador.
             var result = await _signInManager.TwoFactorRecoveryCodeSignInAsync(recoveryCode);
 
             var userId = await _userManager.GetUserIdAsync(user);

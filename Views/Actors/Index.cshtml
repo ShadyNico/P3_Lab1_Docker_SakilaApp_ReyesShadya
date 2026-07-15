@@ -3,14 +3,25 @@
 @* Esta vista recibe los actores desde ActorsController.Index y los muestra en una tabla. *@
 @{
     ViewData["Title"] = "Actors";
+    var canCreate = User.IsInRole("Administrador") || User.IsInRole("Operador");
+    var canEdit = User.IsInRole("Administrador") || User.IsInRole("Supervisor");
+    var canDelete = User.IsInRole("Administrador");
+    var currentPage = ViewData["CurrentPage"] as int? ?? 1;
+    var totalPages = ViewData["TotalPages"] as int? ?? 1;
+    var totalActors = ViewData["TotalActors"] as int? ?? Model.Count();
+    var hasPagination = totalPages > 1;
 }
 
-<h1>Actors</h1>
+<div class="page-header">
+    <h1>Actors</h1>
+    @if (canCreate)
+    {
+        <a asp-action="Create" class="btn btn-primary">Create New</a>
+    }
+</div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
+<div class="table-responsive app-table">
+<table class="table table-hover align-middle">
     <thead>
         <tr>
             <th>
@@ -19,10 +30,10 @@
             <th>
                 @Html.DisplayNameFor(model => model.LastName)
             </th>
-            <th>
+            <th class="d-none d-md-table-cell">
                 @Html.DisplayNameFor(model => model.LastUpdate)
             </th>
-            <th></th>
+            <th class="table-actions-cell">Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -34,15 +45,52 @@
             <td>
                 @Html.DisplayFor(modelItem => item.LastName)
             </td>
-            <td>
+            <td class="d-none d-md-table-cell">
                 @Html.DisplayFor(modelItem => item.LastUpdate)
             </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.ActorId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.ActorId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.ActorId">Delete</a>
+            <td class="table-actions-cell">
+                <div class="table-actions">
+                @if (canEdit)
+                {
+                    <a asp-action="Edit" asp-route-id="@item.ActorId" class="btn btn-sm btn-outline-primary">Edit</a>
+                }
+                <a asp-action="Details" asp-route-id="@item.ActorId" class="btn btn-sm btn-outline-secondary">Details</a>
+                @if (canDelete)
+                {
+                    <a asp-action="Delete" asp-route-id="@item.ActorId" class="btn btn-sm btn-outline-danger">Delete</a>
+                }
+                </div>
             </td>
         </tr>
 }
     </tbody>
 </table>
+</div>
+
+<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mt-3">
+    <div class="text-muted small">
+        Showing page @currentPage of @totalPages - @totalActors actors
+    </div>
+
+    @if (hasPagination)
+    {
+        <nav aria-label="Actors pagination">
+            <ul class="pagination mb-0">
+                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@(currentPage - 1)">Previous</a>
+                </li>
+
+                @for (var pageNumber = 1; pageNumber <= totalPages; pageNumber++)
+                {
+                    <li class="page-item @(pageNumber == currentPage ? "active" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-page="@pageNumber">@pageNumber</a>
+                    </li>
+                }
+
+                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@(currentPage + 1)">Next</a>
+                </li>
+            </ul>
+        </nav>
+    }
+</div>

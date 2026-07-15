@@ -11,46 +11,68 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-lg navbar-toggleable-lg navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
                 @* ANTES: el logo apuntaba a Home/Index. *@
                 @* CORREGIDO: el logo apunta a Films/Index. *@
                 <a class="navbar-brand" asp-area="" asp-controller="Films" asp-action="Index">SakilaApp</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+                <div id="navbarSupportedContent" class="navbar-collapse collapse d-lg-flex align-items-lg-center">
+                    <ul class="navbar-nav me-auto">
                         @* Enlaces visibles del menu principal. Cada uno abre el Index de su controlador. *@
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Films" asp-action="Index">Films</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Actors" asp-action="Index">Actors</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Categories" asp-action="Index">Categories</a>
-                        </li>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Films" asp-action="Index">Films</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Actors" asp-action="Index">Actors</a>
+                            </li>
 
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Languages" asp-action="Index">Languages</a>
-                        </li>
+                            @if (User.IsInRole("Administrador") || User.IsInRole("Supervisor") || User.IsInRole("Consulta"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Categories" asp-action="Index">Categories</a>
+                                </li>
+                            }
+
+                            @if (User.IsInRole("Administrador"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Languages" asp-action="Index">Languages</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="PanelAdministrador">Panel Administrador</a>
+                                </li>
+                            }
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Store" asp-action="Index">Tienda</a>
+                            </li>
+
+                            @if (User.IsInRole("Administrador"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Inventory" asp-action="Index">Inventario</a>
+                                </li>
+                            }
+                        }
                     </ul>
+                    <partial name="_LoginPartial" />
                 </div>
             </div>
-            <partial name="_LoginPartial" />
-            
         </nav>
     </header>
-    <div class="container">
+    <div class="app-content container-fluid px-3 px-lg-4">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
     <footer class="border-top footer text-muted">
-        <div class="container">
+        <div class="container-fluid px-3 px-lg-4">
             @* ANTES: el footer tenia un enlace a Privacy. *@
             @* CORREGIDO: se deja solo el nombre de la aplicacion. *@
             &copy; 2026 - SakilaApp

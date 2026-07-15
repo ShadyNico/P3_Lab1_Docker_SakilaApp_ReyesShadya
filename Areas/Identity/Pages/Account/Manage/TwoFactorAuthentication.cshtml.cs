@@ -11,6 +11,8 @@ using Microsoft.Extensions.Logging;
 
 namespace SakilaApp.Areas.Identity.Pages.Account.Manage
 {
+    // Panel de estado de 2FA. No calcula codigos; solo consulta y muestra el estado
+    // actual del autenticador, los codigos de recuperacion y el navegador recordado.
     public class TwoFactorAuthenticationModel : PageModel
     {
         private readonly UserManager<IdentityUser> _userManager;
@@ -59,15 +61,21 @@ namespace SakilaApp.Areas.Identity.Pages.Account.Manage
 
         public async Task<IActionResult> OnGetAsync()
         {
+            // Peticion GET: carga el usuario autenticado y consulta el estado actual
+            // del 2FA directamente desde Identity.
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
                 return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
             }
 
+            // Hay autenticador si existe una llave secreta guardada.
             HasAuthenticator = await _userManager.GetAuthenticatorKeyAsync(user) != null;
+            // Esta bandera decide si el login debe pedir segundo factor.
             Is2faEnabled = await _userManager.GetTwoFactorEnabledAsync(user);
+            // Indica si este navegador ya tiene la cookie que omite futuros retos 2FA.
             IsMachineRemembered = await _signInManager.IsTwoFactorClientRememberedAsync(user);
+            // Cantidad de codigos de un solo uso disponibles para recuperar acceso.
             RecoveryCodesLeft = await _userManager.CountRecoveryCodesAsync(user);
 
             return Page();
@@ -75,6 +83,8 @@ namespace SakilaApp.Areas.Identity.Pages.Account.Manage
 
         public async Task<IActionResult> OnPostAsync()
         {
+            // Peticion POST desde el boton "Forget this browser": elimina la cookie
+            // que recordaba este cliente. El proximo login volvera a pedir codigo 2FA.
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {

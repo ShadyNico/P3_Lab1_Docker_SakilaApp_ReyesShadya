@@ -24,7 +24,7 @@
         </dd>
     </dl>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.LanguageId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+<div class="d-flex flex-wrap gap-2">
+    <a asp-action="Edit" asp-route-id="@Model?.LanguageId" class="btn btn-primary">Edit</a>
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
 </div>

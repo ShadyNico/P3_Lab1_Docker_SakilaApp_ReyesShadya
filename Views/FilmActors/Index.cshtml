@@ -1,15 +1,16 @@
 @model IEnumerable<SakilaApp.Models.FilmActor>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Film Actors";
 }
 
-<h1>Index</h1>
+<div class="page-header">
+    <h1>Film Actors</h1>
+    <a asp-action="Create" class="btn btn-primary">Create New</a>
+</div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
+<div class="table-responsive app-table">
+<table class="table table-hover align-middle">
     <thead>
         <tr>
             <th>
@@ -21,7 +22,7 @@
             <th>
                 @Html.DisplayNameFor(model => model.Film)
             </th>
-            <th></th>
+            <th class="table-actions-cell">Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -36,12 +37,15 @@
             <td>
                 @Html.DisplayFor(modelItem => item.Film.FilmId)
             </td>
-            <td>
-                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+            <td class="table-actions-cell">
+                <div class="table-actions">
+                    <a asp-action="Edit" class="btn btn-sm btn-outline-primary">Edit</a>
+                    <a asp-action="Details" class="btn btn-sm btn-outline-secondary">Details</a>
+                    <a asp-action="Delete" class="btn btn-sm btn-outline-danger">Delete</a>
+                </div>
             </td>
         </tr>
 }
     </tbody>
 </table>
+</div>

@@ -12,7 +12,6 @@ using SakilaApp.Models;
 
 namespace SakilaApp.Controllers
 
-
 {
 
     // CORREGIDO: la pagina principal apunta a Films/Index.
@@ -26,6 +25,28 @@ namespace SakilaApp.Controllers
         {
             _context = context;
         }
+        
+        public async Task<IActionResult> Index()
+        {
+            var sakilaContext = _context.Films.Include(f => f.Language).Include(f => f.OriginalLanguage);
+            return View(await sakilaContext.ToListAsync());
+        }
+        
+
+        //Films/HorrorActoresS
+        /*
+        public async Task<IActionResult> HorrorActoresS()
+        {
+            var peliculas = await _context.Films
+                .Include(f => f.Language)
+                .Include(f => f.OriginalLanguage)t
+                .Where(f => f.FilmCategories.Any(fc => fc.Category.Name == "Horror") &&
+                            f.FilmActors.Any(fa => fa.Actor.LastName.ToUpper().EndsWith("S")))
+                .Take(10)
+                .ToListAsync();
+
+            return View("Index", peliculas);
+        }*/
 
         // GET: Films
         //MOSTRAR PELICULAS CON DURACION ENTRE 90 Y 120 MINUTOS, ORDENADAS POR DURACION
@@ -418,8 +439,490 @@ namespace SakilaApp.Controllers
 
             return View(peliculas);
         }*/
+        // =====================================================================
+        // EJERCICIOS LINQ CON ENTITY FRAMEWORK CORE – SAKILA
+        // CUARTIL I – NIVEL BÁSICO (Ejercicios 1 al 10)
+        // =====================================================================
+        /*Ejercicio 1: Mostrar las 10 primeras películas ordenadas alfabéticamente por título.
+        public async Task<IActionResult> Ejercicio1()
+            {
+                
+                var peliculas = await _context.Films
+                    .Include(f => f.Language)
+                    .Include(f => f.OriginalLanguage)
+                    .OrderBy(f => f.Title)
+                    .Take(10)
+                    .ToListAsync();
+            
+                ViewBag.PaginaActual = 1;
+                ViewBag.TotalPaginas = 1;
+            
+                return View("Index", peliculas);
+            }
 
-        public async Task<IActionResult> Index(
+        Ejercicio 2: Mostrar las 5 películas más largas registradas.
+        public async Task<IActionResult> Index()
+        {
+            var peliculas = await _context.Films
+                .OrderByDescending(f => f.Length)
+                .Take(5)
+                .ToListAsync();
+            return View(peliculas);
+        }
+
+        Ejercicio 3: Mostrar las 10 películas cuyo título contenga la palabra LOVE.
+        public async Task<IActionResult> Index()
+        {
+            var sakilaContext = _context.Films.Include(f => f.Language).Include(f => f.OriginalLanguage);
+            var peliculas = await _context.Films
+                .Where(f => f.Title.ToUpper().Contains("LOVE"))
+                .Take(10)
+                .ToListAsync();
+            return View(peliculas);
+        }
+
+        Ejercicio 4: Mostrar las 10 películas cuyo título empiece con la letra A.
+        public async Task<IActionResult> Index()
+        {
+            var peliculas = await _context.Films
+                .Where(f => f.Title.ToUpper().StartsWith("A"))
+                .Take(10)
+                .ToListAsync();
+            return View(peliculas);
+        }
+
+        Ejercicio 5: Mostrar las 10 películas cuyo título termine con la letra N.
+        public async Task<IActionResult> Index()
+        {
+            var peliculas = await _context.Films
+                .Where(f => f.Title.ToUpper().EndsWith("N"))
+                .Take(10)
+                .ToListAsync();
+            return View(peliculas);
+        }
+
+        Ejercicio 6: Mostrar las 10 películas cuya duración sea mayor a 120 minutos.
+        public async Task<IActionResult> Index()
+        {
+            var peliculas = await _context.Films
+                .Where(f => f.Length > 120)
+                .Take(10)
+                .ToListAsync();
+            return View(peliculas);
+        }
+
+        Ejercicio 7: Mostrar las 10 películas cuyo costo de reemplazo sea menor a 20 dólares.
+        public async Task<IActionResult> Index()
+        {
+            var peliculas = await _context.Films
+                .Where(f => f.ReplacementCost < 20m)
+                .Take(10)
+                .ToListAsync();
+            return View(peliculas);
+        }
+
+        Ejercicio 8: Mostrar las 10 películas cuya duración sea mayor a 100 minutos y cuyo costo de reemplazo sea menor a 20 dólares.
+        public async Task<IActionResult> Index()
+        {
+            var peliculas = await _context.Films
+                .Where(f => f.Length > 100 && f.ReplacementCost < 20m)
+                .Take(10)
+                .ToListAsync();
+            return View(peliculas);
+        }
+        
+        Ejercicio 9: Mostrar las 10 películas cuyo título contenga LOVE o cuya tarifa de alquiler sea 4.99.
+        public async Task<IActionResult> Ejercicio9()
+        {
+            var peliculas = await _context.Films
+                .Include(f => f.Language)
+                .Include(f => f.OriginalLanguage)
+                .Where(f => f.Title.ToUpper().Contains("LOVE") ||
+                            f.RentalRate == 4.99m)
+                .OrderBy(f => f.FilmId)
+                .Take(10)
+                .ToListAsync();
+        
+            ViewBag.PaginaActual = 1;
+            ViewBag.TotalPaginas = 1;
+        
+            return View("Index", peliculas);
+        }
+        
+        //Ejercicio 10: Mostrar las 10 películas cuyo título empiece con A o termine con N.
+        /*public async Task<IActionResult> Index()
+        {
+            var sakilaContext = _context.Films.Include(f => f.Language).Include(f => f.OriginalLanguage);
+            var peliculas = await _context.Films
+                .Where(f => f.Title.ToUpper().StartsWith("A") || f.Title.ToUpper().EndsWith("N"))
+                .Take(10)
+                .ToListAsync();
+            return View(peliculas);
+        }
+        /*
+        // =====================================================================
+        // CUARTIL II – NIVEL INTERMEDIO (Ejercicios 15 al 20)
+        // =====================================================================
+
+        Ejercicio 15: Mostrar las 10 películas junto con el nombre de su idioma.
+        public async Task<IActionResult> Ejercicio15()
+            {
+                var peliculas = await _context.Films
+                    .Include(f => f.Language)
+                    .Include(f => f.OriginalLanguage)
+                    .OrderBy(f => f.FilmId)
+                    .Take(10)
+                    .ToListAsync();
+            
+                ViewBag.PaginaActual = 1;
+                ViewBag.TotalPaginas = 1;
+            
+                return View("Index", peliculas);
+            }
+
+        Ejercicio 16: Mostrar las 10 primeras películas cuyo idioma sea diferente a English.
+        public async Task<IActionResult> Index()
+        {
+            var peliculas = await _context.Films
+                .Include(f => f.Language)
+                .Where(f => f.Language.Name != "English")
+                .Take(10)
+                .ToListAsync();
+            return View(peliculas);
+        }
+
+        Ejercicio 17: Mostrar las 10 primeras películas cuyo idioma sea diferente de English y cuyo título empiece con A.
+        public async Task<IActionResult> Index()
+        {
+            var peliculas = await _context.Films
+                .Include(f => f.Language)
+                .Where(f => f.Language.Name != "English" && f.Title.ToUpper().StartsWith("A"))
+                .Take(10)
+                .ToListAsync();
+            return View(peliculas);
+        }
+
+        Ejercicio 18: Mostrar las 5 películas cuyo idioma sea diferente a English o cuyo título contenga LOVE.
+        public async Task<IActionResult> Index()
+        {
+            var sakilaContext = _context.Films.Include(f => f.Language).Include(f => f.OriginalLanguage);
+            var peliculas = await _context.Films
+                .Include(f => f.Language)
+                .Where(f => f.Language.Name != "English" || f.Title.ToUpper().Contains("LOVE"))
+                .Take(5)
+                .ToListAsync();
+            return View(peliculas);
+        }
+
+        Ejercicio 19: Mostrar las 5 películas más largas cuyo idioma sea diferente a English.
+        public async Task<IActionResult> Index()
+        {
+            var peliculas = await _context.Films
+                .Include(f => f.Language)
+                .Where(f => f.Language.Name != "English")
+                .OrderByDescending(f => f.Length)
+                .Take(5)
+                .ToListAsync();
+            return View(peliculas);
+        }
+
+        Ejercicio 20: Mostrar las 10 películas cuyo idioma sea English, ordenadas por duración descendente y omitiendo la primera.
+        public async Task<IActionResult> Index()
+        {
+            var peliculas = await _context.Films
+                .Include(f => f.Language)
+                .Where(f => f.Language.Name == "English")
+                .OrderByDescending(f => f.Length)
+                .Skip(1)
+                .Take(10)
+                .ToListAsync();
+            return View(peliculas);
+        }
+
+        // =====================================================================
+        // CUARTIL III – NIVEL AVANZADO (Ejercicios 21 al 30)
+        // =====================================================================
+
+        Ejercicio 21: Mostrar las 10 películas pertenecientes a la categoría Action.
+        public async Task<IActionResult> Index()
+        {
+            var peliculas = await _context.Films
+                .Where(f => f.FilmCategories.Any(fc => fc.Category.Name == "Action"))
+                .Take(10)
+                .ToListAsync();
+            return View(peliculas);
+        }
+
+        Ejercicio 22: Mostrar las 5 películas más largas de la categoría Drama.
+        public async Task<IActionResult> Ejercicio22()
+        {
+            var peliculas = await _context.Films
+                .Join(
+                    _context.FilmCategories,
+                    film => film.FilmId,
+                    filmCategory => filmCategory.FilmId,
+                    (film, filmCategory) => new
+                    {
+                        Film = film,
+                        FilmCategory = filmCategory
+                    })
+                .Join(
+                    _context.Categories,
+                    item => item.FilmCategory.CategoryId,
+                    category => category.CategoryId,
+                    (item, category) => new
+                    {
+                        item.Film,
+                        Category = category
+                    })
+                .Where(item => item.Category.Name == "Drama")
+                .OrderByDescending(item => item.Film.Length)
+                .ThenBy(item => item.Film.FilmId)
+                .Select(item => item.Film)
+                .Take(5)
+                .Include(f => f.Language)
+                .Include(f => f.OriginalLanguage)
+                .ToListAsync();
+        
+            ViewBag.PaginaActual = 1;
+            ViewBag.TotalPaginas = 1;
+        
+            return View("Index", peliculas);
+        }
+        /*
+
+        Ejercicio 23: Mostrar las 10 películas de categoría Comedy cuyo título contenga la letra A.
+        public async Task<IActionResult> Index()
+        {
+            var peliculas = await _context.Films
+                .Where(f => f.FilmCategories.Any(fc => fc.Category.Name == "Comedy") && f.Title.ToUpper().Contains("A"))
+                .Take(10)
+                .ToListAsync();
+            return View(peliculas);
+        }
+
+        Ejercicio 24: Mostrar las 5 películas de categoría Horror omitiendo la primera.
+        public async Task<IActionResult> Index()
+        {
+            var peliculas = await _context.Films
+                .Where(f => f.FilmCategories.Any(fc => fc.Category.Name == "Horror"))
+                .OrderBy(f => f.Title)
+                .Skip(1)
+                .Take(5)
+                .ToListAsync();
+            return View(peliculas);
+        }
+        
+        //Ejercicio 25: Mostrar las 10 películas de categoría Family ordenadas por título.
+        public async Task<IActionResult> Ejercicio25()
+        {
+            var peliculas = await _context.Films
+                .Include(f => f.Language)
+                .Include(f => f.OriginalLanguage)
+                .Where(f => f.FilmCategories
+                    .Any(fc => fc.Category.Name == "Family"))
+                .OrderBy(f => f.Title)
+                .Take(10)
+                .ToListAsync();
+        
+            ViewBag.PaginaActual = 1;
+            ViewBag.TotalPaginas = 1;
+        
+            return View("Index", peliculas);
+        }
+
+        /*
+        Ejercicio 26: Mostrar las 10 películas de categoría Animation cuya duración sea mayor a 100 minutos.
+        public async Task<IActionResult> Index()
+        {
+            var peliculas = await _context.Films
+                .Where(f => f.FilmCategories.Any(fc => fc.Category.Name == "Animation") && f.Length > 100)
+                .Take(10)
+                .ToListAsync();
+            return View(peliculas);
+        }
+
+        Ejercicio 27: Mostrar las 10 películas de categoría Action cuyo costo de reemplazo sea menor a 20 dólares.
+        public async Task<IActionResult> Ejercicio27()
+            {
+                var peliculas = await _context.Films
+                    .Include(f => f.Language)
+                    .Include(f => f.OriginalLanguage)
+                    .Where(f => f.FilmCategories
+                                    .Any(fc => fc.Category.Name == "Action") &&
+                                f.ReplacementCost < 20m)
+                    .OrderBy(f => f.FilmId)
+                    .Take(10)
+                    .ToListAsync();
+            
+                ViewBag.PaginaActual = 1;
+                ViewBag.TotalPaginas = 1;
+            
+                return View("Index", peliculas);
+            }
+
+        Ejercicio 28: Mostrar las 5 películas de categoría Comedy cuya duración sea mayor a 120 minutos.
+        public async Task<IActionResult> Index()
+        {
+            var peliculas = await _context.Films
+                .Where(f => f.FilmCategories.Any(fc => fc.Category.Name == "Comedy") && f.Length > 120)
+                .Take(5)
+                .ToListAsync();
+            return View(peliculas);
+        }
+
+        Ejercicio 29: Mostrar las 10 películas de categoría Drama cuyo título empiece con la letra M.
+        public async Task<IActionResult> Index()
+        {
+            var peliculas = await _context.Films
+                .Where(f => f.FilmCategories.Any(fc => fc.Category.Name == "Drama") && f.Title.ToUpper().StartsWith("M"))
+                .Take(10)
+                .ToListAsync();
+            return View(peliculas);
+        }
+
+        Ejercicio 30: Mostrar las 5 películas de categoría Family ordenadas por duración descendente.
+        public async Task<IActionResult> Index()
+        {
+            var peliculas = await _context.Films
+                .Where(f => f.FilmCategories.Any(fc => fc.Category.Name == "Family"))
+                .OrderByDescending(f => f.Length)
+                .Take(5)
+                .ToListAsync();
+            return View(peliculas);
+        }
+
+        // =====================================================================
+        // CUARTIL IV – NIVEL DESAFÍO (Ejercicios 31 al 40)
+        // =====================================================================
+
+        Ejercicio 31: Mostrar las 10 películas en las que participe un actor cuyo apellido empiece con S.
+        public async Task<IActionResult> Index31()
+        {
+            var peliculas = await _context.Films
+                .Where(f => f.FilmActors.Any(fa => fa.Actor.LastName.ToUpper().StartsWith("S")))
+                .Take(10)
+                .ToListAsync();
+            return View(peliculas);
+        }
+
+        Ejercicio 32: Mostrar las 5 películas en las que participe un actor cuyo nombre contenga JO.
+        public async Task<IActionResult> Index32()
+        {
+            var peliculas = await _context.Films
+                .Where(f => f.FilmActors.Any(fa => fa.Actor.FirstName.ToUpper().Contains("JO")))
+                .Take(5)
+                .ToListAsync();
+            return View(peliculas);
+        }
+
+        Ejercicio 33: Mostrar las 5 películas en las que participe un actor cuyo apellido termine con N.
+        public async Task<IActionResult> Ejercicio33()
+        {
+            var peliculas = await _context.Films
+                .Include(f => f.Language)
+                .Include(f => f.OriginalLanguage)
+                .Where(f => f.FilmActors
+                    .Any(fa => fa.Actor.LastName.ToUpper().EndsWith("N")))
+                .OrderBy(f => f.FilmId)
+                .Take(5)
+                .ToListAsync();
+        
+            ViewBag.PaginaActual = 1;
+            ViewBag.TotalPaginas = 1;
+        
+            return View("Index", peliculas);
+        }
+
+        /*
+        Ejercicio 34: Mostrar las 10 películas en las que participe un actor cuyo nombre empiece con M y cuyo título contenga la letra A.
+        public async Task<IActionResult> Index34()
+        {
+            var peliculas = await _context.Films
+                .Where(f => f.FilmActors.Any(fa => fa.Actor.FirstName.ToUpper().StartsWith("M")) && f.Title.ToUpper().Contains("A"))
+                .Take(10)
+                .ToListAsync();
+            return View(peliculas);
+        }
+
+        Ejercicio 35: Mostrar las 5 películas de categoría Comedy en las que participe un actor cuyo apellido empiece con B.
+        */public async Task<IActionResult> Ejercicio35()
+            {
+                var peliculas = await _context.Films
+                    .Include(f => f.Language)
+                    .Include(f => f.OriginalLanguage)
+                    .Where(f => f.FilmCategories
+                                    .Any(fc => fc.Category.Name == "Comedy") &&
+                                f.FilmActors
+                                    .Any(fa => fa.Actor.LastName.ToUpper()
+                                        .StartsWith("B")))
+                    .OrderBy(f => f.FilmId)
+                    .Take(5)
+                    .ToListAsync();
+            
+                ViewBag.PaginaActual = 1;
+                ViewBag.TotalPaginas = 1;
+            
+                return View("Index", peliculas);
+            }
+
+        /*
+        Ejercicio 36: Mostrar las 10 películas en las que participe un actor cuyo apellido empiece con C y cuya categoría sea Action.
+        public async Task<IActionResult> Index36()
+        {
+            var peliculas = await _context.Films
+                .Where(f => f.FilmActors.Any(fa => fa.Actor.LastName.ToUpper().StartsWith("C")) && f.FilmCategories.Any(fc => fc.Category.Name == "Action"))
+                .Take(10)
+                .ToListAsync();
+            return View(peliculas);
+        }
+
+        Ejercicio 37: Mostrar las 5 películas en las que participe un actor cuyo nombre contenga AN y cuya categoría sea Drama.
+        public async Task<IActionResult> Index37()
+        {
+            var peliculas = await _context.Films
+                .Where(f => f.FilmActors.Any(fa => fa.Actor.FirstName.ToUpper().Contains("AN")) && f.FilmCategories.Any(fc => fc.Category.Name == "Drama"))
+                .Take(5)
+                .ToListAsync();
+            return View(peliculas);
+        }
+        */
+        
+
+        /*Ejercicio 39: Mostrar las 5 películas de categoría Family en las que participe un actor cuyo nombre empiece con J.
+        public async Task<IActionResult> Index39()
+        {
+            var peliculas = await _context.Films
+                .Where(f => f.FilmCategories.Any(fc => fc.Category.Name == "Family") && f.FilmActors.Any(fa => fa.Actor.FirstName.ToUpper().StartsWith("J")))
+                .Take(5)
+                .ToListAsync();
+            return View(peliculas);
+        }
+        /*
+        Ejercicio 40: Mostrar las 10 películas de categoría Comedy en las que participe un actor cuyo apellido contenga la letra R y cuya duración sea mayor a 100 minutos.
+        */public async Task<IActionResult> Ejercicio40()
+            {
+                var peliculas = await _context.Films
+                    .Include(f => f.Language)
+                    .Include(f => f.OriginalLanguage)
+                    .Where(f => f.FilmCategories
+                                    .Any(fc => fc.Category.Name == "Comedy") &&
+                                f.FilmActors
+                                    .Any(fa => fa.Actor.LastName.ToUpper()
+                                        .Contains("R")) &&
+                                f.Length > 100)
+                    .OrderBy(f => f.FilmId)
+                    .Take(10)
+                    .ToListAsync();
+            
+                ViewBag.PaginaActual = 1;
+                ViewBag.TotalPaginas = 1;
+            
+                return View("Index", peliculas);
+            }
+
+
+        /*public async Task<IActionResult> Index(
             string? buscar,
             int? duracionMinima,
             int pagina = 1)
@@ -455,7 +958,7 @@ namespace SakilaApp.Controllers
 
             return View(peliculas);
         }
-
+        */
         
 
         // GET: Films/Details/5

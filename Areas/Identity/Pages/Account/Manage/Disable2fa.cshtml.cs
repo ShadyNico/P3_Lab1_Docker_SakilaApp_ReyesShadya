@@ -11,6 +11,8 @@ using Microsoft.Extensions.Logging;
 
 namespace SakilaApp.Areas.Identity.Pages.Account.Manage
 {
+    // Desactiva el requisito de segundo factor, pero conserva la llave del autenticador.
+    // Si se quiere invalidar la llave escaneada por la app, se debe usar ResetAuthenticator.
     public class Disable2faModel : PageModel
     {
         private readonly UserManager<IdentityUser> _userManager;
@@ -33,6 +35,7 @@ namespace SakilaApp.Areas.Identity.Pages.Account.Manage
 
         public async Task<IActionResult> OnGet()
         {
+            // Peticion GET: solo permite abrir esta pantalla si el usuario ya tiene 2FA activo.
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -49,6 +52,8 @@ namespace SakilaApp.Areas.Identity.Pages.Account.Manage
 
         public async Task<IActionResult> OnPostAsync()
         {
+            // Peticion POST: cambia la bandera TwoFactorEnabled a false.
+            // La llave secreta sigue guardada y podria reutilizarse si se vuelve a activar.
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {

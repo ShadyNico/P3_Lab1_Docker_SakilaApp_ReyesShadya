@@ -4,10 +4,19 @@
 @* CORREGIDO: ahora el titulo y encabezado dicen Films. *@
 @{
     ViewData["Title"] = "Films";
+    var canCreateOrEdit = User.IsInRole("Administrador") || User.IsInRole("Supervisor");
+    var canDelete = User.IsInRole("Administrador");
 }
 
-<h1>Films</h1>
-<form asp-action="Index" method="get" class="mb-3">
+<div class="page-header">
+    <h1>Films</h1>
+    @if (canCreateOrEdit)
+    {
+        <a asp-action="Create" class="btn btn-primary">Create New</a>
+    }
+</div>
+
+<form asp-action="Index" method="get" class="filter-bar">
     <div class="row g-2">
         <div class="col-md-5">
             <input type="text" name="buscar" value="@ViewBag.Buscar"
@@ -28,49 +37,47 @@
     </div>
 </form>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
+<div class="table-responsive app-table">
+<table class="table table-hover align-middle">
     <thead>
         <tr>
             <th>
                 @Html.DisplayNameFor(model => model.Title)
             </th>
-            <th>
+            <th class="d-none d-xl-table-cell">
                 @Html.DisplayNameFor(model => model.Description)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.ReleaseYear)
             </th>
-            <th>
+            <th class="d-none d-lg-table-cell">
                 @Html.DisplayNameFor(model => model.RentalDuration)
             </th>
-            <th>
+            <th class="d-none d-xl-table-cell">
                 @Html.DisplayNameFor(model => model.RentalRate)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Length)
             </th>
-            <th>
+            <th class="d-none d-xl-table-cell">
                 @Html.DisplayNameFor(model => model.ReplacementCost)
             </th>
-            <th>
+            <th class="d-none d-xxl-table-cell">
                 @Html.DisplayNameFor(model => model.LastUpdate)
             </th>
-            <th>
+            <th class="d-none d-xxl-table-cell">
                 @Html.DisplayNameFor(model => model.SpecialFeatures)
             </th>
-            <th>
+            <th class="d-none d-xxl-table-cell">
                 @Html.DisplayNameFor(model => model.Fulltext)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Language)
             </th>
-            <th>
+            <th class="d-none d-xl-table-cell">
                 @Html.DisplayNameFor(model => model.OriginalLanguage)
             </th>
-            <th></th>
+            <th class="table-actions-cell">Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -79,48 +86,57 @@
             <td>
                 @Html.DisplayFor(modelItem => item.Title)
             </td>
-            <td>
+            <td class="d-none d-xl-table-cell">
                 @Html.DisplayFor(modelItem => item.Description)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.ReleaseYear)
             </td>
-            <td>
+            <td class="d-none d-lg-table-cell">
                 @Html.DisplayFor(modelItem => item.RentalDuration)
             </td>
-            <td>
+            <td class="d-none d-xl-table-cell">
                 @Html.DisplayFor(modelItem => item.RentalRate)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Length)
             </td>
-            <td>
+            <td class="d-none d-xl-table-cell">
                 @Html.DisplayFor(modelItem => item.ReplacementCost)
             </td>
-            <td>
+            <td class="d-none d-xxl-table-cell">
                 @Html.DisplayFor(modelItem => item.LastUpdate)
             </td>
-            <td>
+            <td class="d-none d-xxl-table-cell">
                 @Html.DisplayFor(modelItem => item.SpecialFeatures)
             </td>
-            <td>
+            <td class="d-none d-xxl-table-cell">
                 @Html.DisplayFor(modelItem => item.Fulltext)
             </td>
             <td>
                 @(item.Language?.Name ?? "Sin idioma")
             </td>
-            <td>
+            <td class="d-none d-xl-table-cell">
                 @(item.OriginalLanguage?.Name ?? "Sin idioma original")
             </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.FilmId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.FilmId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.FilmId">Delete</a>
+            <td class="table-actions-cell">
+                <div class="table-actions">
+                @if (canCreateOrEdit)
+                {
+                    <a asp-action="Edit" asp-route-id="@item.FilmId" class="btn btn-sm btn-outline-primary">Edit</a>
+                }
+                <a asp-action="Details" asp-route-id="@item.FilmId" class="btn btn-sm btn-outline-secondary">Details</a>
+                @if (canDelete)
+                {
+                    <a asp-action="Delete" asp-route-id="@item.FilmId" class="btn btn-sm btn-outline-danger">Delete</a>
+                }
+                </div>
             </td>
         </tr>
 }
     </tbody>
 </table>
+</div>
 
 <nav class="mt-3">
     <ul class="pagination">

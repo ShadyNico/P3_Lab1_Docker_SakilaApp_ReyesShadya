@@ -1,0 +1,112 @@
+@model SakilaApp.Models.Commerce.PurchaseOrder
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+
+@{
+    var paypalClientId = Configuration["PayPal:ClientId"];
+    var paypalCurrency = Configuration["PayPal:CurrencyCode"] ?? "USD";
+    var createOrderUrl = Url.Action("CreatePayPalButtonOrderJson", "Payment", new { orderId = Model.PurchaseOrderId });
+    var captureOrderUrl = Url.Action("CapturePayPalButtonOrderJson", "Payment");
+}
+
+<h1>Pago con PayPal Sandbox</h1>
+
+<p><strong>Orden:</strong> @Model.PurchaseOrderId</p>
+<p><strong>Total:</strong> @Model.Total.ToString("C")</p>
+<p><strong>Estado:</strong> @Model.Status</p>
+
+@if (string.IsNullOrWhiteSpace(paypalClientId))
+{
+    <div class="alert alert-danger">
+        Falta configurar PayPal:ClientId en user-secrets.
+    </div>
+}
+else
+{
+    <div class="alert alert-info">
+        Esta vista usa el boton oficial de PayPal embebido en la aplicacion.
+        Desde PayPal Sandbox se puede probar con cuenta Sandbox o con tarjeta de prueba.
+    </div>
+
+    <div id="paypal-button-container" style="max-width: 480px;"></div>
+    <div id="paypal-message" class="mt-3"></div>
+}
+
+<h2>Detalle de la orden</h2>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Pelicula</th>
+            <th>Cantidad</th>
+            <th>Precio</th>
+            <th>Subtotal</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var d in Model.Details)
+    {
+        <tr>
+            <td>@d.FilmTitle</td>
+            <td>@d.Quantity</td>
+            <td>@d.UnitPrice.ToString("C")</td>
+            <td>@d.Subtotal.ToString("C")</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@section Scripts {
+    @if (!string.IsNullOrWhiteSpace(paypalClientId))
+    {
+        <script src="https://www.paypal.com/sdk/js?client-id=@paypalClientId&currency=@paypalCurrency&intent=capture&components=buttons"></script>
+        <script>
+            (() => {
+                const message = document.getElementById("paypal-message");
+
+                const showMessage = (text, isError = false) => {
+                    message.className = isError ? "alert alert-danger mt-3" : "alert alert-success mt-3";
+                    message.textContent = text;
+                };
+
+                paypal.Buttons({
+                    createOrder: async () => {
+                        const response = await fetch("@createOrderUrl", {
+                            method: "POST",
+                            headers: {
+                                "Accept": "application/json"
+                            }
+                        });
+
+                        const payload = await response.json();
+                        if (!response.ok || !payload.success) {
+                            throw new Error(payload.message || "No se pudo crear la orden PayPal.");
+                        }
+
+                        return payload.orderId;
+                    },
+                    onApprove: async (data) => {
+                        const response = await fetch("@captureOrderUrl?paypalOrderId=" + encodeURIComponent(data.orderID), {
+                            method: "POST",
+                            headers: {
+                                "Accept": "application/json"
+                            }
+                        });
+
+                        const payload = await response.json();
+                        if (!response.ok || !payload.success) {
+                            throw new Error(payload.message || "No se pudo capturar el pago PayPal.");
+                        }
+
+                        window.location.href = payload.redirectUrl;
+                    },
+                    onCancel: () => {
+                        showMessage("Pago cancelado en PayPal.", true);
+                    },
+                    onError: (err) => {
+                        showMessage(err.message || "Ocurrio un error con PayPal.", true);
+                    }
+                }).render("#paypal-button-container");
+            })();
+        </script>
+    }
+}

@@ -16,12 +16,20 @@ using Microsoft.Extensions.Logging;
 
 namespace SakilaApp.Areas.Identity.Pages.Account.Manage
 {
+    // Pagina para configurar el autenticador:
+    // GET muestra la llave compartida y el QR.
+    // POST recibe el codigo de 6 digitos generado por la app y, si es valido,
+    // marca TwoFactorEnabled=true para que el siguiente login pida segundo factor.
     public class EnableAuthenticatorModel : PageModel
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly ILogger<EnableAuthenticatorModel> _logger;
         private readonly UrlEncoder _urlEncoder;
 
+        // Formato estandar que entienden las apps autenticadoras.
+        // otpauth://totp/{issuer}:{account}?secret={sharedKey}&issuer={issuer}&digits=6
+        // El QR no contiene el codigo temporal; contiene la llave secreta compartida
+        // que luego usaran el servidor y la app para calcular codigos TOTP iguales.
         private const string AuthenticatorUriFormat = "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6";
 
         public EnableAuthenticatorModel(
@@ -86,6 +94,8 @@ namespace SakilaApp.Areas.Identity.Pages.Account.Manage
 
         public async Task<IActionResult> OnGetAsync()
         {
+            // Peticion GET: se carga el usuario autenticado y se preparan los datos
+            // que se van a mostrar en pantalla: llave formateada y URI para el QR.
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -99,6 +109,8 @@ namespace SakilaApp.Areas.Identity.Pages.Account.Manage
 
         public async Task<IActionResult> OnPostAsync()
         {
+            // Peticion POST: llega el primer codigo que el usuario copio desde la app
+            // autenticadora. Este codigo prueba que la app escaneo la misma llave secreta.
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -111,9 +123,13 @@ namespace SakilaApp.Areas.Identity.Pages.Account.Manage
                 return Page();
             }
 
-            // Strip spaces and hyphens
+            // Se aceptan codigos escritos con espacios o guiones para facilitar la entrada.
+            // Antes de validar, se deja solo el numero real que genera el autenticador.
             var verificationCode = Input.Code.Replace(" ", string.Empty).Replace("-", string.Empty);
 
+            // Identity valida localmente el codigo TOTP. Internamente toma la llave
+            // secreta guardada para el usuario y calcula el codigo esperado para la
+            // ventana de tiempo actual; no se hace una peticion a Google/Microsoft.
             var is2faTokenValid = await _userManager.VerifyTwoFactorTokenAsync(
                 user, _userManager.Options.Tokens.AuthenticatorTokenProvider, verificationCode);
 
@@ -124,6 +140,8 @@ namespace SakilaApp.Areas.Identity.Pages.Account.Manage
                 return Page();
             }
 
+            // Si el codigo coincide, se activa la bandera TwoFactorEnabled del usuario.
+            // Desde este punto PasswordSignInAsync puede devolver RequiresTwoFactor.
             await _userManager.SetTwoFactorEnabledAsync(user, true);
             var userId = await _userManager.GetUserIdAsync(user);
             _logger.LogInformation("User with ID '{UserId}' has enabled 2FA with an authenticator app.", userId);
@@ -132,6 +150,8 @@ namespace SakilaApp.Areas.Identity.Pages.Account.Manage
 
             if (await _userManager.CountRecoveryCodesAsync(user) == 0)
             {
+                // Codigos de recuperacion: claves de un solo uso para entrar si el
+                // usuario pierde el telefono o no puede abrir su app autenticadora.
                 var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
                 RecoveryCodes = recoveryCodes.ToArray();
                 return RedirectToPage("./ShowRecoveryCodes");
@@ -144,14 +164,19 @@ namespace SakilaApp.Areas.Identity.Pages.Account.Manage
 
         private async Task LoadSharedKeyAndQrCodeUriAsync(IdentityUser user)
         {
-            // Load the authenticator key & QR code URI to display on the form
+            // Se obtiene la llave secreta del autenticador. Identity la guarda como
+            // token del usuario en el almacenamiento de Identity (AspNetUserTokens).
             var unformattedKey = await _userManager.GetAuthenticatorKeyAsync(user);
             if (string.IsNullOrEmpty(unformattedKey))
             {
+                // Si el usuario aun no tiene llave, ResetAuthenticatorKeyAsync genera
+                // una nueva llave aleatoria y la persiste. No se deriva de la password.
                 await _userManager.ResetAuthenticatorKeyAsync(user);
                 unformattedKey = await _userManager.GetAuthenticatorKeyAsync(user);
             }
 
+            // Solo cambia la presentacion para que se pueda copiar a mano.
+            // La llave real que se usa para calcular TOTP sigue siendo unformattedKey.
             SharedKey = FormatKey(unformattedKey);
 
             var email = await _userManager.GetEmailAsync(user);
@@ -160,6 +185,8 @@ namespace SakilaApp.Areas.Identity.Pages.Account.Manage
 
         private string FormatKey(string unformattedKey)
         {
+            // Divide la llave en bloques de 4 caracteres para leerla mejor.
+            // Esto no altera el valor criptografico de la llave.
             var result = new StringBuilder();
             int currentPosition = 0;
             while (currentPosition + 4 < unformattedKey.Length)
@@ -177,6 +204,9 @@ namespace SakilaApp.Areas.Identity.Pages.Account.Manage
 
         private string GenerateQrCodeUri(string email, string unformattedKey)
         {
+            // La app autenticadora lee este URI desde el QR. Con el parametro "secret"
+            // guarda la misma llave que el servidor. Luego ambos calculan cada codigo
+            // de 6 digitos usando TOTP: llave compartida + tiempo actual.
             return string.Format(
                 CultureInfo.InvariantCulture,
                 AuthenticatorUriFormat,

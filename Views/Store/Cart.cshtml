@@ -1,0 +1,49 @@
+@model IEnumerable<SakilaApp.Models.Commerce.ShoppingCartItem>
+
+<h1>Carrito</h1>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Película</th>
+            <th>Cantidad</th>
+            <th>Precio</th>
+            <th>Subtotal</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.FilmStock.Title</td>
+            <td>@item.Quantity</td>
+            <td>@item.FilmStock.UnitPrice.ToString("C")</td>
+            <td>@((item.Quantity * item.FilmStock.UnitPrice).ToString("C"))</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<h3>Total: @Model.Sum(i => i.Quantity * i.FilmStock.UnitPrice).ToString("C")</h3>
+
+<div class="d-flex flex-wrap gap-2">
+    <form asp-action="Checkout" method="post">
+        <input type="hidden" name="provider" value="PayPhone" />
+        <button class="btn btn-primary">Generar orden y pagar con PayPhone</button>
+    </form>
+
+    <form asp-action="Checkout" method="post">
+        <input type="hidden" name="provider" value="PayPal" />
+        <button class="btn btn-info">Pagar con PayPal Sandbox</button>
+    </form>
+
+    <form asp-action="Checkout" method="post">
+        <input type="hidden" name="provider" value="PayPalButton" />
+        <button class="btn btn-dark">Pagar con boton PayPal / Tarjeta Sandbox</button>
+    </form>
+</div>

@@ -86,6 +86,8 @@ namespace SakilaApp.Areas.Identity.Pages.Account
 
         public async Task OnGetAsync(string returnUrl = null)
         {
+            // Peticion GET: muestra el formulario de login y limpia cookies externas
+            // para iniciar el flujo de autenticacion desde un estado conocido.
             if (!string.IsNullOrEmpty(ErrorMessage))
             {
                 ModelState.AddModelError(string.Empty, ErrorMessage);
@@ -103,6 +105,7 @@ namespace SakilaApp.Areas.Identity.Pages.Account
 
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
+            // Peticion POST: llegan email, password y RememberMe desde el formulario.
             returnUrl ??= Url.Content("~/");
 
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
@@ -119,6 +122,10 @@ namespace SakilaApp.Areas.Identity.Pages.Account
                 }
                 if (result.RequiresTwoFactor)
                 {
+                    // Si la password fue correcta, el usuario tiene 2FA activo y este
+                    // navegador no esta recordado, Identity no completa el login todavia.
+                    // Guarda temporalmente el usuario en una cookie interna y redirige
+                    // a LoginWith2fa para pedir el codigo del autenticador.
                     return RedirectToPage("./LoginWith2fa", new { ReturnUrl = returnUrl, RememberMe = Input.RememberMe });
                 }
                 if (result.IsLockedOut)

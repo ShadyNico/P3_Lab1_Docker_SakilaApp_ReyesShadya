@@ -56,7 +56,7 @@ public static class IdentitySeeder
             }
         };
 
-        // 4. Crear cada usuario y asignarle su rol correspondiente
+        // 4. Crear o reparar cada usuario y asignarle su rol correspondiente.
         foreach (var item in usuarios)
         {
             var user = await userManager.FindByEmailAsync(item.Email);
@@ -70,13 +70,82 @@ public static class IdentitySeeder
                     EmailConfirmed = true
                 };
 
-                await userManager.CreateAsync(user, item.Password);
+                EnsureSucceeded(
+                    await userManager.CreateAsync(user, item.Password),
+                    $"crear el usuario {item.Email}");
+            }
+            else
+            {
+                var changed = false;
+
+                if (user.UserName != item.Email)
+                {
+                    EnsureSucceeded(
+                        await userManager.SetUserNameAsync(user, item.Email),
+                        $"actualizar el nombre de usuario de {item.Email}");
+                    changed = true;
+                }
+
+                if (user.Email != item.Email)
+                {
+                    EnsureSucceeded(
+                        await userManager.SetEmailAsync(user, item.Email),
+                        $"actualizar el correo de {item.Email}");
+                    changed = true;
+                }
+
+                if (!user.EmailConfirmed)
+                {
+                    user.EmailConfirmed = true;
+                    changed = true;
+                }
+
+                if (user.TwoFactorEnabled)
+                {
+                    user.TwoFactorEnabled = false;
+                    changed = true;
+                }
+
+                if (changed)
+                {
+                    EnsureSucceeded(
+                        await userManager.UpdateAsync(user),
+                        $"actualizar el usuario {item.Email}");
+                }
+
+                var hasPassword = await userManager.HasPasswordAsync(user);
+                if (!hasPassword)
+                {
+                    EnsureSucceeded(
+                        await userManager.AddPasswordAsync(user, item.Password),
+                        $"asignar contrasena a {item.Email}");
+                }
+                else if (!await userManager.CheckPasswordAsync(user, item.Password))
+                {
+                    var resetToken = await userManager.GeneratePasswordResetTokenAsync(user);
+                    EnsureSucceeded(
+                        await userManager.ResetPasswordAsync(user, resetToken, item.Password),
+                        $"restablecer contrasena de {item.Email}");
+                }
             }
 
             if (!await userManager.IsInRoleAsync(user, item.Role))
             {
-                await userManager.AddToRoleAsync(user, item.Role);
+                EnsureSucceeded(
+                    await userManager.AddToRoleAsync(user, item.Role),
+                    $"asignar el rol {item.Role} a {item.Email}");
             }
         }
+    }
+
+    private static void EnsureSucceeded(IdentityResult result, string action)
+    {
+        if (result.Succeeded)
+        {
+            return;
+        }
+
+        var errors = string.Join("; ", result.Errors.Select(error => error.Description));
+        throw new InvalidOperationException($"No se pudo {action}: {errors}");
     }
 }

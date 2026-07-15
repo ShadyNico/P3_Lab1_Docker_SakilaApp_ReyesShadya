@@ -1,24 +1,25 @@
 @model IEnumerable<SakilaApp.Models.Language>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Languages";
 }
 
-<h1>Index</h1>
+<div class="page-header">
+    <h1>Languages</h1>
+    <a asp-action="Create" class="btn btn-primary">Create New</a>
+</div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
+<div class="table-responsive app-table">
+<table class="table table-hover align-middle">
     <thead>
         <tr>
             <th>
                 @Html.DisplayNameFor(model => model.Name)
             </th>
-            <th>
+            <th class="d-none d-md-table-cell">
                 @Html.DisplayNameFor(model => model.LastUpdate)
             </th>
-            <th></th>
+            <th class="table-actions-cell">Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -27,15 +28,18 @@
             <td>
                 @Html.DisplayFor(modelItem => item.Name)
             </td>
-            <td>
+            <td class="d-none d-md-table-cell">
                 @Html.DisplayFor(modelItem => item.LastUpdate)
             </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.LanguageId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.LanguageId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.LanguageId">Delete</a>
+            <td class="table-actions-cell">
+                <div class="table-actions">
+                    <a asp-action="Edit" asp-route-id="@item.LanguageId" class="btn btn-sm btn-outline-primary">Edit</a>
+                    <a asp-action="Details" asp-route-id="@item.LanguageId" class="btn btn-sm btn-outline-secondary">Details</a>
+                    <a asp-action="Delete" asp-route-id="@item.LanguageId" class="btn btn-sm btn-outline-danger">Delete</a>
+                </div>
             </td>
         </tr>
 }
     </tbody>
 </table>
+</div>

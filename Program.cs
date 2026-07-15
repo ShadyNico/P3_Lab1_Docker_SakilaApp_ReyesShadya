@@ -2,6 +2,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.DataProtection;
 using SakilaApp.Data;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using SakilaApp.Services;
+using SakilaApp.Settings;
+using SakilaApp.Services.Payments;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,14 +31,54 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services
     .AddDefaultIdentity<IdentityUser>(options =>
     {
-        options.SignIn.RequireConfirmedAccount = false;
+        options.SignIn.RequireConfirmedAccount = true;
         options.Password.RequireDigit = true;
         options.Password.RequireUppercase = true;
         options.Password.RequireLowercase = true;
         options.Password.RequiredLength = 6;
     })
+    // AddDefaultIdentity registra los servicios de Identity y sus proveedores de tokens.
+    // El proveedor "AuthenticatorTokenProvider" es el que valida los codigos TOTP
+    // de apps como Microsoft Authenticator o Google Authenticator; la app no llama
+    // a esos proveedores externos para validar el codigo.
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
+
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection("EmailSettings"));
+
+builder.Services.AddTransient<IEmailSender, GmailEmailSender>();
+
+builder.Services.Configure<PayPhoneSettings>(
+    builder.Configuration.GetSection("PayPhone"));
+
+builder.Services.AddHttpClient<PayPhoneApiLinkService>();
+
+builder.Services.Configure<PayPalSettings>(
+    builder.Configuration.GetSection("PayPal"));
+
+builder.Services.AddHttpClient<PayPalService>();
+
+// La aplicacion no se ejecutaba porque AddDefaultIdentity estaba registrado dos veces.
+// Eso intentaba crear dos veces el esquema de autenticacion "Identity.Application" y ASP.NET Core
+// detenia el arranque con: "Scheme already exists: Identity.Application".
+
+var googleClientId = builder.Configuration["Authentication:Google:ClientId"];
+var googleClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+
+// Registrar Google solo cuando hay credenciales configuradas. Si se registra con
+// ClientId/ClientSecret vacios, OAuth falla al validar opciones y bloquea el login.
+if (!string.IsNullOrWhiteSpace(googleClientId) &&
+    !string.IsNullOrWhiteSpace(googleClientSecret))
+{
+    builder.Services
+        .AddAuthentication()
+        .AddGoogle(options =>
+        {
+            options.ClientId = googleClientId;
+            options.ClientSecret = googleClientSecret;
+        });
+}
 
 var app = builder.Build();
 
@@ -66,4 +111,8 @@ using (var scope = app.Services.CreateScope())
 {
     await IdentitySeeder.SeedAsync(scope.ServiceProvider);
 }
+
+// Si la aplicacion vuelve a fallar con "address already in use", no es error de compilacion:
+// significa que el puerto obligatorio localhost:5164 ya esta ocupado por otro proceso.
+// Para ejecutar en el puerto requerido, primero hay que cerrar el proceso que use el puerto 5164.
 app.Run();

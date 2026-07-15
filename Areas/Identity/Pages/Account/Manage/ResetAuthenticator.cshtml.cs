@@ -11,6 +11,8 @@ using Microsoft.Extensions.Logging;
 
 namespace SakilaApp.Areas.Identity.Pages.Account.Manage
 {
+    // Reinicia la llave secreta compartida con la app autenticadora.
+    // Despues del reset, los codigos generados por el QR anterior dejan de coincidir.
     public class ResetAuthenticatorModel : PageModel
     {
         private readonly UserManager<IdentityUser> _userManager;
@@ -36,6 +38,7 @@ namespace SakilaApp.Areas.Identity.Pages.Account.Manage
 
         public async Task<IActionResult> OnGet()
         {
+            // Peticion GET: muestra la advertencia antes de invalidar la llave actual.
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -47,6 +50,9 @@ namespace SakilaApp.Areas.Identity.Pages.Account.Manage
 
         public async Task<IActionResult> OnPostAsync()
         {
+            // Peticion POST: desactiva 2FA y genera una nueva llave secreta.
+            // El usuario debe volver a pasar por EnableAuthenticator para escanearla
+            // y verificar un codigo antes de reactivar TwoFactorEnabled.
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -54,10 +60,12 @@ namespace SakilaApp.Areas.Identity.Pages.Account.Manage
             }
 
             await _userManager.SetTwoFactorEnabledAsync(user, false);
+            // Genera y guarda una llave nueva para el usuario. La llave anterior ya no sirve.
             await _userManager.ResetAuthenticatorKeyAsync(user);
             var userId = await _userManager.GetUserIdAsync(user);
             _logger.LogInformation("User with ID '{UserId}' has reset their authentication app key.", user.Id);
 
+            // Actualiza la cookie de sesion para reflejar el nuevo SecurityStamp/estado.
             await _signInManager.RefreshSignInAsync(user);
             StatusMessage = "Your authenticator app key has been reset, you will need to configure your authenticator app using the new key.";
 

@@ -12,6 +12,8 @@ using Microsoft.Extensions.Logging;
 
 namespace SakilaApp.Areas.Identity.Pages.Account.Manage
 {
+    // Genera codigos de recuperacion: claves de un solo uso para entrar cuando
+    // el usuario no puede usar su app autenticadora.
     public class GenerateRecoveryCodesModel : PageModel
     {
         private readonly UserManager<IdentityUser> _userManager;
@@ -41,6 +43,7 @@ namespace SakilaApp.Areas.Identity.Pages.Account.Manage
 
         public async Task<IActionResult> OnGetAsync()
         {
+            // Peticion GET: solo muestra la opcion si 2FA ya esta activo.
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -58,6 +61,8 @@ namespace SakilaApp.Areas.Identity.Pages.Account.Manage
 
         public async Task<IActionResult> OnPostAsync()
         {
+            // Peticion POST: genera un nuevo lote de codigos. Los codigos anteriores
+            // dejan de ser los codigos validos de recuperacion para este usuario.
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -71,6 +76,8 @@ namespace SakilaApp.Areas.Identity.Pages.Account.Manage
                 throw new InvalidOperationException($"Cannot generate recovery codes for user as they do not have 2FA enabled.");
             }
 
+            // Identity crea y guarda codigos aleatorios de un solo uso; no se calculan
+            // a partir de la llave TOTP del autenticador.
             var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
             RecoveryCodes = recoveryCodes.ToArray();
 

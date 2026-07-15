@@ -222,6 +222,184 @@ namespace SakilaApp.Data.MigrationsIdentity
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("SakilaApp.Models.Commerce.FilmStock", b =>
+                {
+                    b.Property<int>("FilmStockId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("FilmStockId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("FilmId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Stock")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("numeric");
+
+                    b.HasKey("FilmStockId");
+
+                    b.ToTable("FilmStocks");
+                });
+
+            modelBuilder.Entity("SakilaApp.Models.Commerce.PaymentTransaction", b =>
+                {
+                    b.Property<int>("PaymentTransactionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PaymentTransactionId"));
+
+                    b.Property<int>("AmountInCents")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ClientTransactionId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("ConfirmedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("GatewayResponse")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PayPalApprovalUrl")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PayPalCaptureId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PayPalOrderId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PayphonePaymentUrl")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PayphoneTransactionId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("PurchaseOrderId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("PaymentTransactionId");
+
+                    b.HasIndex("PurchaseOrderId");
+
+                    b.ToTable("PaymentTransactions");
+                });
+
+            modelBuilder.Entity("SakilaApp.Models.Commerce.PurchaseOrder", b =>
+                {
+                    b.Property<int>("PurchaseOrderId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PurchaseOrderId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("Total")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("UserEmail")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("PurchaseOrderId");
+
+                    b.ToTable("PurchaseOrders");
+                });
+
+            modelBuilder.Entity("SakilaApp.Models.Commerce.PurchaseOrderDetail", b =>
+                {
+                    b.Property<int>("PurchaseOrderDetailId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PurchaseOrderDetailId"));
+
+                    b.Property<int>("FilmStockId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("FilmTitle")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("PurchaseOrderId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("numeric");
+
+                    b.HasKey("PurchaseOrderDetailId");
+
+                    b.HasIndex("PurchaseOrderId");
+
+                    b.ToTable("PurchaseOrderDetails");
+                });
+
+            modelBuilder.Entity("SakilaApp.Models.Commerce.ShoppingCartItem", b =>
+                {
+                    b.Property<int>("ShoppingCartItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ShoppingCartItemId"));
+
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("FilmStockId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserEmail")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("ShoppingCartItemId");
+
+                    b.HasIndex("FilmStockId");
+
+                    b.ToTable("ShoppingCartItems");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -271,6 +449,44 @@ namespace SakilaApp.Data.MigrationsIdentity
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("SakilaApp.Models.Commerce.PaymentTransaction", b =>
+                {
+                    b.HasOne("SakilaApp.Models.Commerce.PurchaseOrder", "PurchaseOrder")
+                        .WithMany()
+                        .HasForeignKey("PurchaseOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PurchaseOrder");
+                });
+
+            modelBuilder.Entity("SakilaApp.Models.Commerce.PurchaseOrderDetail", b =>
+                {
+                    b.HasOne("SakilaApp.Models.Commerce.PurchaseOrder", "PurchaseOrder")
+                        .WithMany("Details")
+                        .HasForeignKey("PurchaseOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PurchaseOrder");
+                });
+
+            modelBuilder.Entity("SakilaApp.Models.Commerce.ShoppingCartItem", b =>
+                {
+                    b.HasOne("SakilaApp.Models.Commerce.FilmStock", "FilmStock")
+                        .WithMany()
+                        .HasForeignKey("FilmStockId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FilmStock");
+                });
+
+            modelBuilder.Entity("SakilaApp.Models.Commerce.PurchaseOrder", b =>
+                {
+                    b.Navigation("Details");
                 });
 #pragma warning restore 612, 618
         }

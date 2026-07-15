@@ -38,10 +38,12 @@
 
             if (Model.IsMachineRemembered)
             {
+                @* POST a OnPostAsync: elimina la cookie que recuerda este navegador para 2FA. *@
                 <form method="post" style="display: inline-block">
                     <button type="submit" class="btn btn-primary">Forget this browser</button>
                 </form>
             }
+            @* Estas paginas ejecutan cambios separados: desactivar 2FA o regenerar codigos de recuperacion. *@
             <a asp-page="./Disable2fa" class="btn btn-primary">Disable 2FA</a>
             <a asp-page="./GenerateRecoveryCodes" class="btn btn-primary">Reset recovery codes</a>
         }
@@ -49,10 +51,12 @@
         <h4>Authenticator app</h4>
         @if (!Model.HasAuthenticator)
         {
+            @* Si no hay llave secreta, EnableAuthenticator crea una y muestra el QR. *@
             <a id="enable-authenticator" asp-page="./EnableAuthenticator" class="btn btn-primary">Add authenticator app</a>
         }
         else
         {
+            @* Set up vuelve a mostrar la llave actual; reset crea una llave nueva e invalida la anterior. *@
             <a id="enable-authenticator" asp-page="./EnableAuthenticator" class="btn btn-primary">Set up authenticator app</a>
             <a id="reset-authenticator" asp-page="./ResetAuthenticator" class="btn btn-primary">Reset authenticator app</a>
         }
