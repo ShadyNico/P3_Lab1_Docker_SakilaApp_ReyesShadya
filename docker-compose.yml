@@ -1,0 +1,27 @@
+services:
+  sakilaapp:
+    container_name: sakilaapp-compose
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sakilaapp:compose
+    ports:
+      - "5164:8080"
+    environment:
+      ASPNETCORE_URLS: "http://+:8080"
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ConnectionStrings__DefaultConnection: "Host=host.docker.internal;Port=5433;Database=sakila;Username=cruduser;Password=${POSTGRES_PASSWORD:-}"
+      PayPal__ClientId: "${PAYPAL_CLIENT_ID:-}"
+      PayPal__ClientSecret: "${PAYPAL_CLIENT_SECRET:-}"
+      PayPal__BaseUrl: "${PAYPAL_BASE_URL:-https://api-m.sandbox.paypal.com}"
+      PayPal__ReturnUrl: "${PAYPAL_RETURN_URL:-http://localhost:5164/Payment/Success}"
+      PayPal__CancelUrl: "${PAYPAL_CANCEL_URL:-http://localhost:5164/Payment/Cancel}"
+      PayPal__CurrencyCode: "${PAYPAL_CURRENCY_CODE:-USD}"
+      PayPhone__Token: "${PAYPHONE_TOKEN:-}"
+      PayPhone__StoreId: "${PAYPHONE_STORE_ID:-}"
+    volumes:
+      - sakila_keys:/app/DataProtectionKeys
+    restart: unless-stopped
+
+volumes:
+  sakila_keys:

@@ -18,7 +18,6 @@ namespace SakilaApp.Controllers
     public class ActorsController : Controller
     {
         private readonly SakilaContext _context;
-        private const int PageSize = 10;
 
         public ActorsController(SakilaContext context)
         {
@@ -28,33 +27,13 @@ namespace SakilaApp.Controllers
         // Muestra /Actors con paginacion para no cargar todos los actores en una sola pantalla.
         public async Task<IActionResult> Index(int page = 1)
         {
-            if (page < 1)
-            {
-                page = 1;
-            }
-
-            var totalActors = await _context.Actors.CountAsync();
-            var totalPages = (int)Math.Ceiling(totalActors / (double)PageSize);
-
-            if (totalPages > 0 && page > totalPages)
-            {
-                page = totalPages;
-            }
-
-            var actors = await _context.Actors
+            var query = _context.Actors
                 .AsNoTracking()
                 .OrderBy(a => a.LastName)
                 .ThenBy(a => a.FirstName)
-                .ThenBy(a => a.ActorId)
-                .Skip((page - 1) * PageSize)
-                .Take(PageSize)
-                .ToListAsync();
+                .ThenBy(a => a.ActorId);
 
-            ViewData["CurrentPage"] = page;
-            ViewData["TotalPages"] = totalPages;
-            ViewData["TotalActors"] = totalActors;
-
-            return View(actors);
+            return View(await this.PaginateAsync(query, page));
         }
         
         //Mostrar 5 actores siguientes depsues del primero que su nombre empiecen con la letra n o 

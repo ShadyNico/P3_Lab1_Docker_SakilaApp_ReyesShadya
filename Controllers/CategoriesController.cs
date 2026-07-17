@@ -22,9 +22,14 @@ namespace SakilaApp.Controllers
         }
 
         // GET: Categories
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
-            return View(await _context.Categories.ToListAsync());
+            var query = _context.Categories
+                .AsNoTracking()
+                .OrderBy(c => c.Name)
+                .ThenBy(c => c.CategoryId);
+
+            return View(await this.PaginateAsync(query, page));
         }
 
         // GET: Categories/Details/5

@@ -18,13 +18,14 @@ public class InventoryController : Controller
         _appContext = appContext;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(int page = 1)
     {
-        var items = await _appContext.FilmStocks
+        var query = _appContext.FilmStocks
+            .AsNoTracking()
             .OrderBy(f => f.Title)
-            .ToListAsync();
+            .ThenBy(f => f.FilmStockId);
 
-        return View(items);
+        return View(await this.PaginateAsync(query, page));
     }
 
     public async Task<IActionResult> Inicializar()

@@ -23,26 +23,21 @@ public class PayPhoneApiLinkService
         string clientTransactionId,
         string reference)
     {
+        EnsureConfigured();
+
         int amountInCents = (int)Math.Round(
             total * 100,
             MidpointRounding.AwayFromZero);
 
         var request = new
-{
-    amount = amountInCents,
-    amountWithoutTax = amountInCents,
-    amountWithTax = 0,
-    tax = 0,
-    service = 0,
-    tip = 0,
-    currency = "USD",
-    reference = reference,
-    clientTransactionId = clientTransactionId,
-    additionalData = reference,
-    oneTime = true,
-    expireIn = 0,
-    isAmountEditable = false
-};
+        {
+            amount = amountInCents,
+            amountWithoutTax = amountInCents,
+            currency = "USD",
+            clientTransactionId,
+            storeId = _settings.StoreId,
+            reference
+        };
 
         using var httpRequest = new HttpRequestMessage(
             HttpMethod.Post,
@@ -63,5 +58,20 @@ public class PayPhoneApiLinkService
         }
 
         return content.Trim('"');
+    }
+
+    private void EnsureConfigured()
+    {
+        if (string.IsNullOrWhiteSpace(_settings.Token))
+        {
+            throw new InvalidOperationException(
+                "Configura PayPhone:Token mediante User Secrets o la variable PayPhone__Token.");
+        }
+
+        if (string.IsNullOrWhiteSpace(_settings.StoreId))
+        {
+            throw new InvalidOperationException(
+                "Configura PayPhone:StoreId mediante User Secrets o la variable PayPhone__StoreId.");
+        }
     }
 }

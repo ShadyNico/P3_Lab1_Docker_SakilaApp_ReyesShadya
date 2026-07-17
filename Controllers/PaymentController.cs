@@ -36,10 +36,33 @@ public class PaymentController : Controller
         string clientTransactionId = GenerateClientTransactionId();
         string reference = $"Orden Sakila #{order.PurchaseOrderId}";
 
-        string link = await _payPhoneService.CreatePaymentLinkAsync(
-            order.Total,
-            clientTransactionId,
-            reference);
+        string link;
+
+        try
+        {
+            link = await _payPhoneService.CreatePaymentLinkAsync(
+                order.Total,
+                clientTransactionId,
+                reference);
+        }
+        catch (InvalidOperationException ex)
+        {
+            var failedPayment = new PaymentTransaction
+            {
+                PurchaseOrderId = order.PurchaseOrderId,
+                Provider = "PayPhone",
+                ClientTransactionId = clientTransactionId,
+                GatewayResponse = ex.Message,
+                AmountInCents = ToCents(order.Total),
+                Status = "Failed"
+            };
+
+            _context.PaymentTransactions.Add(failedPayment);
+            await _context.SaveChangesAsync();
+            TempData["Error"] = ex.Message;
+
+            return RedirectToAction(nameof(Details), new { id = failedPayment.PaymentTransactionId });
+        }
 
         var payment = new PaymentTransaction
         {

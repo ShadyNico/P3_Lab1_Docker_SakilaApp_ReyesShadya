@@ -10,3 +10,9 @@ DataProtectionKeys/
 TestResults/
 *.log
 publish/
+.env
+.env.*
+!.env.example
+*.tar
+*.dump
+backups/

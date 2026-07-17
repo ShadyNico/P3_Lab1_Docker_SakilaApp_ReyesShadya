@@ -22,9 +22,14 @@ namespace SakilaApp.Controllers
         }
 
         // GET: Languages
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
-            return View(await _context.Languages.ToListAsync());
+            var query = _context.Languages
+                .AsNoTracking()
+                .OrderBy(l => l.Name)
+                .ThenBy(l => l.LanguageId);
+
+            return View(await this.PaginateAsync(query, page));
         }
 
         // GET: Languages/Details/5

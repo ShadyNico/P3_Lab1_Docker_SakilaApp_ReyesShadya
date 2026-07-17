@@ -21,10 +21,16 @@ namespace SakilaApp.Controllers
         }
 
         // GET: FilmCategories
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
-            var sakilaContext = _context.FilmCategories.Include(f => f.Category).Include(f => f.Film);
-            return View(await sakilaContext.ToListAsync());
+            var query = _context.FilmCategories
+                .AsNoTracking()
+                .Include(f => f.Category)
+                .Include(f => f.Film)
+                .OrderBy(f => f.FilmId)
+                .ThenBy(f => f.CategoryId);
+
+            return View(await this.PaginateAsync(query, page));
         }
 
         // GET: FilmCategories/Details/5

@@ -6,10 +6,6 @@
     var canCreate = User.IsInRole("Administrador") || User.IsInRole("Operador");
     var canEdit = User.IsInRole("Administrador") || User.IsInRole("Supervisor");
     var canDelete = User.IsInRole("Administrador");
-    var currentPage = ViewData["CurrentPage"] as int? ?? 1;
-    var totalPages = ViewData["TotalPages"] as int? ?? 1;
-    var totalActors = ViewData["TotalActors"] as int? ?? Model.Count();
-    var hasPagination = totalPages > 1;
 }
 
 <div class="page-header">
@@ -67,30 +63,4 @@
 </table>
 </div>
 
-<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mt-3">
-    <div class="text-muted small">
-        Showing page @currentPage of @totalPages - @totalActors actors
-    </div>
-
-    @if (hasPagination)
-    {
-        <nav aria-label="Actors pagination">
-            <ul class="pagination mb-0">
-                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                    <a class="page-link" asp-action="Index" asp-route-page="@(currentPage - 1)">Previous</a>
-                </li>
-
-                @for (var pageNumber = 1; pageNumber <= totalPages; pageNumber++)
-                {
-                    <li class="page-item @(pageNumber == currentPage ? "active" : "")">
-                        <a class="page-link" asp-action="Index" asp-route-page="@pageNumber">@pageNumber</a>
-                    </li>
-                }
-
-                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
-                    <a class="page-link" asp-action="Index" asp-route-page="@(currentPage + 1)">Next</a>
-                </li>
-            </ul>
-        </nav>
-    }
-</div>
+<partial name="_Pagination" />

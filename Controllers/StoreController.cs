@@ -18,16 +18,17 @@ public class StoreController : Controller
         _sakilaContext = sakilaContext;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(int page = 1)
     {
         await EnsureCatalogInitializedAsync();
 
-        var productos = await _context.FilmStocks
+        var query = _context.FilmStocks
+            .AsNoTracking()
             .Where(f => f.IsActive && f.Stock > 0)
             .OrderBy(f => f.Title)
-            .ToListAsync();
+            .ThenBy(f => f.FilmStockId);
 
-        return View(productos);
+        return View(await this.PaginateAsync(query, page));
     }
 
     [HttpPost]

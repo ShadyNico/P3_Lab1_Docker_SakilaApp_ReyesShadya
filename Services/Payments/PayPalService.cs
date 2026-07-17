@@ -192,7 +192,7 @@ public class PayPalService
             string.IsNullOrWhiteSpace(_settings.ClientSecret))
         {
             throw new InvalidOperationException(
-                "Configura PayPal:ClientId y PayPal:ClientSecret en user-secrets antes de pagar con PayPal.");
+                "Configura PayPal:ClientId y PayPal:ClientSecret mediante User Secrets o las variables PayPal__ClientId y PayPal__ClientSecret.");
         }
 
         if (string.IsNullOrWhiteSpace(_settings.BaseUrl))

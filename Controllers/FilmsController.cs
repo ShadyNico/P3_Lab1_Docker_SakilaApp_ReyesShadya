@@ -26,10 +26,29 @@ namespace SakilaApp.Controllers
             _context = context;
         }
         
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? buscar, int? duracionMinima, int page = 1)
         {
-            var sakilaContext = _context.Films.Include(f => f.Language).Include(f => f.OriginalLanguage);
-            return View(await sakilaContext.ToListAsync());
+            var query = _context.Films
+                .AsNoTracking()
+                .Include(f => f.Language)
+                .Include(f => f.OriginalLanguage)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(buscar))
+            {
+                query = query.Where(f => EF.Functions.ILike(f.Title, $"%{buscar.Trim()}%"));
+            }
+
+            if (duracionMinima.HasValue)
+            {
+                query = query.Where(f => f.Length >= duracionMinima.Value);
+            }
+
+            ViewBag.Buscar = buscar;
+            ViewBag.DuracionMinima = duracionMinima;
+
+            query = query.OrderBy(f => f.Title).ThenBy(f => f.FilmId);
+            return View(await this.PaginateAsync(query, page));
         }
         
 
